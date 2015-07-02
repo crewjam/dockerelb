@@ -28,6 +28,21 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Wait for the container to start
+	// TODO(ross): this could be done with the events interface perhaps?
+	for {
+		_, err := dockerClient.InspectContainer(*containerID)
+		if err == nil {
+			break
+		}
+		if _, ok := err.(*docker.NoSuchContainer); ok {
+			time.Sleep(time.Second)
+			continue
+		}
+		fmt.Printf("docker: %s: %s\n", *containerID, err)
+		os.Exit(1)
+	}
+
 	instanceID := aws.InstanceId()
 	if instanceID == "unknown" {
 		fmt.Printf("cannot determine AWS instance ID. not running in EC2?\n")
